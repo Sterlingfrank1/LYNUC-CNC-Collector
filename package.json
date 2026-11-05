@@ -1,0 +1,29 @@
+{
+  "name": "node-red-contrib-lynuc-cnc",
+  "version": "0.1.0",
+  "description": "Node-RED collector for LYNUC CNC controllers over the native RemoteComm protocol (TCP 4011). Pure JavaScript, read-only.",
+  "private": true,
+  "license": "UNLICENSED",
+  "keywords": [
+    "node-red",
+    "cnc",
+    "lynuc",
+    "iiot"
+  ],
+  "main": "lib/client.js",
+  "files": [
+    "lib",
+    "nodes",
+    "tools",
+    "examples",
+    "docs/POINTS.md",
+    "docs/SITE_ACCEPTANCE.md"
+  ],
+  "engines": {
+    "node": ">=14"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "simulate": "node tools/simulator.js"
+  }
+}
