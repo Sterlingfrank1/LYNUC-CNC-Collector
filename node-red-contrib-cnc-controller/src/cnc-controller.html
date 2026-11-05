@@ -1,0 +1,205 @@
+<!--
+  @file cnc-controller.html
+  @brief Node-RED Editor UI for CNC Controller Node
+-->
+
+<script type="text/html" data-template-name="cnc-controller">
+  <div class="form-row">
+    <label for="node-config-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-config-input-name" placeholder="CNC Controller">
+  </div>
+
+  <div class="form-row">
+    <label for="node-config-input-ip"><i class="fa fa-globe"></i> IP Address</label>
+    <input type="text" id="node-config-input-ip" placeholder="192.168.1.100">
+  </div>
+
+  <div class="form-row">
+    <label for="node-config-input-port"><i class="fa fa-plug"></i> Port</label>
+    <input type="number" id="node-config-input-port" placeholder="8080" min="1" max="65535">
+  </div>
+
+  <div class="form-row">
+    <label for="node-config-input-channel"><i class="fa fa-th"></i> Channel</label>
+    <input type="number" id="node-config-input-channel" placeholder="1" min="1" max="2">
+  </div>
+
+  <hr>
+  <h4><i class="fa fa-clock-o"></i> Polling</h4>
+
+  <div class="form-row">
+    <label for="node-config-input-pollInterval"><i class="fa fa-refresh"></i> Interval</label>
+    <input type="number" id="node-config-input-pollInterval" placeholder="1000" min="100" step="100">
+    <span class="form-row-help">ms (minimum 100)</span>
+  </div>
+
+  <div class="form-row">
+    <label for="node-config-input-timeout"><i class="fa fa-clock-o"></i> Timeout</label>
+    <input type="number" id="node-config-input-timeout" placeholder="3000" min="500" step="100">
+    <span class="form-row-help">ms</span>
+  </div>
+
+  <div class="form-row">
+    <label>&nbsp;</label>
+    <input type="checkbox" id="node-config-input-autoReconnect" style="display: inline-block; width: auto; vertical-align: top;">
+    <label for="node-config-input-autoReconnect" style="width: auto;">Auto-reconnect</label>
+  </div>
+
+  <div class="form-row" id="reconnect-row">
+    <label for="node-config-input-reconnectInterval"><i class="fa fa-repeat"></i> Reconnect</label>
+    <input type="number" id="node-config-input-reconnectInterval" placeholder="5000" min="1000" step="1000">
+    <span class="form-row-help">ms</span>
+  </div>
+
+  <hr>
+  <h4><i class="fa fa-database"></i> Data Collection</h4>
+
+  <div class="form-row">
+    <label>&nbsp;</label>
+    <input type="checkbox" id="node-config-input-collectStatus" style="display: inline-block; width: auto; vertical-align: top;" checked>
+    <label for="node-config-input-collectStatus" style="width: auto;">Machine Status</label>
+  </div>
+
+  <div class="form-row">
+    <label>&nbsp;</label>
+    <input type="checkbox" id="node-config-input-collectAxes" style="display: inline-block; width: auto; vertical-align: top;" checked>
+    <label for="node-config-input-collectAxes" style="width: auto;">Axis Positions</label>
+  </div>
+
+  <div class="form-row">
+    <label>&nbsp;</label>
+    <input type="checkbox" id="node-config-input-collectSpindle" style="display: inline-block; width: auto; vertical-align: top;" checked>
+    <label for="node-config-input-collectSpindle" style="width: auto;">Spindle Data</label>
+  </div>
+
+  <div class="form-row">
+    <label>&nbsp;</label>
+    <input type="checkbox" id="node-config-input-collectFeed" style="display: inline-block; width: auto; vertical-align: top;" checked>
+    <label for="node-config-input-collectFeed" style="width: auto;">Feed Rate</label>
+  </div>
+
+  <div class="form-row">
+    <label>&nbsp;</label>
+    <input type="checkbox" id="node-config-input-collectProgram" style="display: inline-block; width: auto; vertical-align: top;" checked>
+    <label for="node-config-input-collectProgram" style="width: auto;">Program Info</label>
+  </div>
+
+  <div class="form-row">
+    <label>&nbsp;</label>
+    <input type="checkbox" id="node-config-input-collectAlarms" style="display: inline-block; width: auto; vertical-align: top;" checked>
+    <label for="node-config-input-collectAlarms" style="width: auto;">Alarm Status</label>
+  </div>
+
+  <div class="form-row">
+    <label>&nbsp;</label>
+    <input type="checkbox" id="node-config-input-collectProduction" style="display: inline-block; width: auto; vertical-align: top;" checked>
+    <label for="node-config-input-collectProduction" style="width: auto;">Production Data</label>
+  </div>
+
+  <div class="form-row">
+    <label>&nbsp;</label>
+    <input type="checkbox" id="node-config-input-collectTool" style="display: inline-block; width: auto; vertical-align: top;" checked>
+    <label for="node-config-input-collectTool" style="width: auto;">Tool Info</label>
+  </div>
+</script>
+
+<script type="text/javascript">
+  RED.nodes.registerType('cnc-controller', {
+    category: 'IIoT',
+    color: '#3F7A75',
+    icon: 'font-awesome/fa-cogs',
+    defaults: {
+      name: { value: '' },
+      ip: { value: '192.168.1.100', required: true },
+      port: { value: 8080, required: true, validate: RED.validators.number() },
+      channel: { value: 1, required: true, validate: RED.validators.number() },
+      pollInterval: { value: 1000, validate: RED.validators.number() },
+      timeout: { value: 3000, validate: RED.validators.number() },
+      autoReconnect: { value: true },
+      reconnectInterval: { value: 5000, validate: RED.validators.number() },
+      collectStatus: { value: true },
+      collectAxes: { value: true },
+      collectSpindle: { value: true },
+      collectFeed: { value: true },
+      collectProgram: { value: true },
+      collectAlarms: { value: true },
+      collectProduction: { value: true },
+      collectTool: { value: true }
+    },
+    inputs: 1,
+    outputs: 1,
+    paletteLabel: 'CNC Controller',
+    label: function () {
+      return this.name || 'CNC:' + this.ip;
+    },
+    labelStyle: function () {
+      return this.name ? 'node_label_italic' : '';
+    },
+    oneditprepare: function () {
+      // Show/hide reconnect interval based on auto-reconnect checkbox
+      var reconnectCheckbox = $('#node-config-input-autoReconnect');
+      var reconnectRow = $('#reconnect-row');
+
+      function updateReconnectVisibility() {
+        reconnectRow.toggle(reconnectCheckbox.is(':checked'));
+      }
+
+      reconnectCheckbox.on('change', updateReconnectVisibility);
+      updateReconnectVisibility();
+
+      // Validate IP address
+      $('#node-config-input-ip').on('change', function () {
+        var ip = $(this).val();
+        var ipRegex = /^(\d{1,3}\.){3}\d{1,3}$/;
+        if (ip && !ipRegex.test(ip)) {
+          $(this).addClass('input-error');
+        } else {
+          $(this).removeClass('input-error');
+        }
+      });
+    },
+    oneditsave: function () {
+      // Ensure minimum poll interval
+      var pollInterval = parseInt($('#node-config-input-pollInterval').val()) || 1000;
+      if (pollInterval < 100) {
+        $('#node-config-input-pollInterval').val(100);
+      }
+    }
+  });
+</script>
+
+<style type="text/css">
+  .cnc-controller-node .form-row {
+    margin-bottom: 15px;
+  }
+  .cnc-controller-node label {
+    display: inline-block;
+    width: 120px;
+    font-weight: 500;
+  }
+  .cnc-controller-node input[type="text"],
+  .cnc-controller-node input[type="number"] {
+    display: inline-block;
+    width: 200px;
+  }
+  .cnc-controller-node .form-row-help {
+    display: inline-block;
+    margin-left: 10px;
+    color: #666;
+    font-size: 0.9em;
+  }
+  .cnc-controller-node hr {
+    margin: 15px 0;
+    border: none;
+    border-top: 1px solid #ddd;
+  }
+  .cnc-controller-node h4 {
+    margin: 10px 0;
+    color: #333;
+    font-size: 14px;
+  }
+  .cnc-controller-node input.input-error {
+    border-color: #d00 !important;
+    background-color: #fee !important;
+  }
+</style>

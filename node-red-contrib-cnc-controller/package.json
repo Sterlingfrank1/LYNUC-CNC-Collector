@@ -1,0 +1,40 @@
+{
+  "name": "node-red-contrib-cnc-controller",
+  "version": "1.0.0",
+  "description": "Node-RED custom node for LYNUC CNC controller data acquisition via TCP/IP",
+  "keywords": [
+    "node-red",
+    "cnc",
+    "controller",
+    "lynuc",
+    "machine-monitor",
+    "industrial"
+  ],
+  "author": "CNC IIoT Team",
+  "license": "MIT",
+  "node-red": {
+    "version": ">=2.0.0",
+    "nodes": {
+      "cnc-controller": "src/cnc-controller.js"
+    }
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "dependencies": {
+    "ffi-napi": "^4.0.7",
+    "ref-napi": "^3.0.3",
+    "ref-array-napi": "^2.0.0",
+    "ref-struct-napi": "^2.0.0"
+  },
+  "optionalDependencies": {
+    "ffi-builder": "^2.1.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-org/node-red-contrib-cnc-controller"
+  },
+  "bugs": {
+    "url": "https://github.com/your-org/node-red-contrib-cnc-controller/issues"
+  }
+}
