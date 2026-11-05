@@ -364,6 +364,66 @@ test('stop 后不再重连也不再输出', async (t) => {
   assert.equal(collector.state, 'stopped');
 });
 
+test('reconnect 不会产生第二条连接', async (t) => {
+  const { sim, collector } = await setup(t);
+  await collector.start();
+  await collector._collecting;
+  collector.stop();
+  collector.start();
+  await sleep(100);
+  assert.equal(sim._sockets.size, 1);
+  assert.equal(collector.state, 'connected');
+});
+
+test('连接中反复 reconnect 也只有一条连接', async (t) => {
+  const { sim, collector } = await setup(t);
+  collector.start();
+  collector.stop();
+  collector.start();
+  collector.stop();
+  collector.start();
+  await sleep(100);
+  assert.equal(sim._sockets.size, 1);
+});
+
+test('缺少 IP 时立即报错', () => {
+  assert.throws(() => new Collector({ host: '' }), /控制器 IP/);
+});
+
+test('内部异常变成事件，不拖垮进程，后续轮次继续', async (t) => {
+  const { sim, collector } = await setup(t);
+  const events = collectEvents(collector);
+  const { format } = collector.groups.spindle;
+  collector.groups.spindle.format = () => {
+    throw new Error('boom');
+  };
+  await collector.start();
+  await collector._collecting;
+  assert.deepEqual(events.map((e) => e.event), ['connected', 'collectError']);
+  assert.equal(events[1].message, 'boom');
+
+  collector.groups.spindle.format = format;
+  const message = await collector.collectNow();
+  assert.ok(message.data.spindle);
+  assert.ok(sim.frames.length > 0);
+});
+
+test('无法识别的报警也会上报并能消除', async (t) => {
+  const { sim, collector } = await setup(t);
+  const events = collectEvents(collector);
+  await collector.start();
+  await collector._collecting;
+
+  sim.alarmText = 'E1204 spindle overload';
+  const raised = await collector.collectNow();
+  assert.equal(raised.data.alarms[0].message, 'E1204 spindle overload');
+  assert.equal(raised.data.alarms[0].severity, 'UNKNOWN');
+
+  sim.alarmText = '';
+  await collector.collectNow();
+  assert.deepEqual(events.filter((e) => e.event.startsWith('alarm')).map((e) => e.event), ['alarmRaised', 'alarmCleared']);
+});
+
 test('自定义点位进入 custom 组', async (t) => {
   const { sim, collector } = await setup(t, {
     customPoints: [

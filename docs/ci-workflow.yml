@@ -1,0 +1,76 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [22, 24]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+      - run: npm ci
+      - run: npm test
+
+  node-red-compat:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { node: 18, node-red: 3 }
+          - { node: 20, node-red: 4 }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - run: npm install --no-save --no-package-lock node-red@${{ matrix.node-red }} node-red-node-test-helper@0.3
+      - run: node --test test/node.test.js
+
+  # package.json 声明 Node >= 14。这些版本跑不了测试工具，用探测工具走一遍真实路径。
+  runtime-minimum:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [14, 16]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Probe all points against the simulator
+        run: |
+          node tools/simulator.js 14011 &
+          sleep 1
+          node tools/probe.js 127.0.0.1 --port 14011
+
+  # 用厂商 32 位 Linux 库验证协议实现。64 位 runner 上靠 multilib 运行。
+  vendor-conformance-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install 32-bit toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-multilib g++-multilib
+      - name: Allow binding the vendor's fixed ports
+        run: sudo sysctl -w net.ipv4.ip_unprivileged_port_start=0
+      - name: Build harness
+        run: |
+          mkdir -p test/conformance/build
+          gcc -m32 -o test/conformance/build/vendor_linux test/conformance/vendor_linux.c -ldl
+      - run: node test/conformance/run.js
