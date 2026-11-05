@@ -1,0 +1,209 @@
+<script type="text/javascript">
+(function () {
+  const GROUPS = [
+    ['machineStatus', '机床状态', 1],
+    ['axes', '轴位置', 1],
+    ['spindle', '主轴', 1],
+    ['feedrate', '进给', 1],
+    ['program', '程序', 1],
+    ['alarms', '报警', 1],
+    ['production', '生产', 5],
+    ['tool', '刀具', 5],
+    ['system', '系统信息', 60],
+  ];
+
+  function defaultGroups() {
+    const groups = {};
+    GROUPS.forEach(([name, , every]) => {
+      groups[name] = { enabled: true, every };
+    });
+    return groups;
+  }
+
+  RED.nodes.registerType('lynuc-cnc', {
+    category: 'IIoT',
+    color: '#3FADB5',
+    icon: 'font-awesome/fa-cogs',
+    paletteLabel: 'LYNUC CNC',
+    inputs: 1,
+    outputs: 2,
+    outputLabels: ['采集数据', '事件'],
+    defaults: {
+      name: { value: '' },
+      host: { value: '', required: true },
+      port: { value: 4011, required: true, validate: RED.validators.number() },
+      deviceId: { value: 'CNC_001', required: true },
+      channel: { value: 1, required: true },
+      axes: { value: 'X,Y,Z', required: true, validate: RED.validators.regex(/^\s*[XYZABCUVWxyzabcuvw](\s*,\s*[XYZABCUVWxyzabcuvw])*\s*$/) },
+      pollInterval: { value: 1000, required: true, validate: (v) => Number(v) >= 200 },
+      connectTimeout: { value: 3000, required: true, validate: RED.validators.number() },
+      requestTimeout: { value: 1000, required: true, validate: RED.validators.number() },
+      autoReconnect: { value: true },
+      reconnectInterval: { value: 5000, required: true, validate: RED.validators.number() },
+      maxRetries: { value: 0, required: true, validate: RED.validators.number() },
+      topic: { value: '' },
+      onlyOnChange: { value: false },
+      deadband: { value: 0, validate: RED.validators.number() },
+      groups: { value: defaultGroups() },
+      customPoints: { value: '[]' },
+    },
+    label() {
+      return this.name || (this.host ? `LYNUC ${this.deviceId || this.host}` : 'LYNUC CNC');
+    },
+    oneditprepare() {
+      const node = this;
+      const saved = node.groups || defaultGroups();
+      const table = $('#lynuc-groups');
+      GROUPS.forEach(([name, label, every]) => {
+        const group = saved[name] || { enabled: true, every };
+        const row = $('<tr>').attr('data-group', name);
+        $('<td>').text(label).appendTo(row);
+        $('<td>').append($('<input type="checkbox" class="lynuc-enabled" style="width:auto;margin:0">').prop('checked', group.enabled !== false)).appendTo(row);
+        $('<td>').append($('<input type="number" class="lynuc-every" min="1" style="width:70px">').val(group.every || every)).appendTo(row);
+        table.append(row);
+      });
+      $('#node-input-customPoints').typedInput({ default: 'json', types: ['json'] });
+      $('#node-input-autoReconnect').on('change', function () {
+        $('.lynuc-reconnect').toggle(this.checked);
+      }).trigger('change');
+      $('#node-input-onlyOnChange').on('change', function () {
+        $('.lynuc-deadband').toggle(this.checked);
+      }).trigger('change');
+    },
+    oneditsave() {
+      const groups = {};
+      $('#lynuc-groups tr[data-group]').each(function () {
+        const row = $(this);
+        groups[row.attr('data-group')] = {
+          enabled: row.find('.lynuc-enabled').prop('checked'),
+          every: Math.max(1, Number(row.find('.lynuc-every').val()) || 1),
+        };
+      });
+      this.groups = groups;
+    },
+  });
+}());
+</script>
+
+<script type="text/html" data-template-name="lynuc-cnc">
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> 名称</label>
+    <input type="text" id="node-input-name">
+  </div>
+  <div class="form-row">
+    <label for="node-input-host"><i class="fa fa-globe"></i> 控制器 IP</label>
+    <input type="text" id="node-input-host" placeholder="192.168.1.100">
+  </div>
+  <div class="form-row">
+    <label for="node-input-port"><i class="fa fa-plug"></i> 端口</label>
+    <input type="number" id="node-input-port" style="width:100px">
+  </div>
+  <div class="form-row">
+    <label for="node-input-deviceId"><i class="fa fa-id-card-o"></i> 设备 ID</label>
+    <input type="text" id="node-input-deviceId">
+  </div>
+  <div class="form-row">
+    <label for="node-input-channel"><i class="fa fa-road"></i> 通道</label>
+    <select id="node-input-channel" style="width:100px">
+      <option value="1">1</option>
+      <option value="2">2</option>
+    </select>
+  </div>
+  <div class="form-row">
+    <label for="node-input-axes"><i class="fa fa-arrows"></i> 采集轴</label>
+    <input type="text" id="node-input-axes" placeholder="X,Y,Z">
+  </div>
+
+  <h4>采集</h4>
+  <div class="form-row">
+    <label for="node-input-pollInterval"><i class="fa fa-clock-o"></i> 轮询周期</label>
+    <input type="number" id="node-input-pollInterval" min="200" step="100" style="width:100px"> ms（不低于 200）
+  </div>
+  <div class="form-row">
+    <label><i class="fa fa-list"></i> 数据组</label>
+    <table id="lynuc-groups" style="display:inline-table;width:70%">
+      <tr><th style="text-align:left">分组</th><th style="text-align:left">启用</th><th style="text-align:left">每 N 周期</th></tr>
+    </table>
+  </div>
+  <div class="form-row">
+    <label for="node-input-customPoints"><i class="fa fa-plus-square-o"></i> 自定义点位</label>
+    <input type="text" id="node-input-customPoints">
+  </div>
+
+  <h4>连接</h4>
+  <div class="form-row">
+    <label for="node-input-connectTimeout"><i class="fa fa-hourglass-half"></i> 连接超时</label>
+    <input type="number" id="node-input-connectTimeout" style="width:100px"> ms
+  </div>
+  <div class="form-row">
+    <label for="node-input-requestTimeout"><i class="fa fa-hourglass-half"></i> 请求超时</label>
+    <input type="number" id="node-input-requestTimeout" style="width:100px"> ms
+  </div>
+  <div class="form-row">
+    <label for="node-input-autoReconnect"><i class="fa fa-refresh"></i> 自动重连</label>
+    <input type="checkbox" id="node-input-autoReconnect" style="width:auto;margin:0">
+  </div>
+  <div class="form-row lynuc-reconnect">
+    <label for="node-input-reconnectInterval"><i class="fa fa-repeat"></i> 重连间隔</label>
+    <input type="number" id="node-input-reconnectInterval" style="width:100px"> ms
+  </div>
+  <div class="form-row lynuc-reconnect">
+    <label for="node-input-maxRetries"><i class="fa fa-ban"></i> 重连上限</label>
+    <input type="number" id="node-input-maxRetries" min="0" style="width:100px"> 次（0 为不限）
+  </div>
+
+  <h4>输出</h4>
+  <div class="form-row">
+    <label for="node-input-topic"><i class="fa fa-tasks"></i> 主题</label>
+    <input type="text" id="node-input-topic" placeholder="默认 cnc/&lt;设备ID&gt;/status">
+  </div>
+  <div class="form-row">
+    <label for="node-input-onlyOnChange"><i class="fa fa-filter"></i> 仅变化时输出</label>
+    <input type="checkbox" id="node-input-onlyOnChange" style="width:auto;margin:0">
+  </div>
+  <div class="form-row lynuc-deadband">
+    <label for="node-input-deadband"><i class="fa fa-arrows-h"></i> 变化阈值</label>
+    <input type="number" id="node-input-deadband" step="any" style="width:100px">
+  </div>
+</script>
+
+<script type="text/html" data-help-name="lynuc-cnc">
+  <p>采集铼钠克（LYNUC）CNC 控制器的运行、生产和 PLC 数据。纯 JavaScript 实现，直连控制器 TCP 4011，<b>只读</b>，不会改动机床状态。</p>
+
+  <h3>输入</h3>
+  <dl class="message-properties">
+    <dt>payload <span class="property-type">string</span></dt>
+    <dd><code>reconnect</code> 重新连接；<code>disconnect</code> 断开；<code>status</code> 从第 2 个输出返回连接状态；其他任意消息立即采集一轮。</dd>
+  </dl>
+
+  <h3>输出</h3>
+  <ol class="node-ports">
+    <li>采集数据
+      <dl class="message-properties">
+        <dt>payload <span class="property-type">object</span></dt>
+        <dd><code>timestamp</code>、<code>deviceId</code>、<code>deviceType</code>、<code>dataType</code>、<code>data</code>。读失败的点位为 <code>null</code>，详情在 <code>errors</code>。</dd>
+        <dt>topic <span class="property-type">string</span></dt>
+        <dd>可配置，默认 <code>cnc/&lt;设备ID&gt;/status</code>。</dd>
+      </dl>
+    </li>
+    <li>事件
+      <dl class="message-properties">
+        <dt>payload <span class="property-type">object</span></dt>
+        <dd><code>event</code> 为 connected、disconnected、stateChanged、cycleStarted、cycleEnded、programChanged、toolChanged、partCompleted、alarmRaised、alarmCleared 之一。</dd>
+      </dl>
+    </li>
+  </ol>
+
+  <h3>配置</h3>
+  <dl class="message-properties">
+    <dt>数据组</dt>
+    <dd>每组可单独开关。“每 N 周期”决定采集频率，例如轮询周期 1000 ms、N 为 5 时每 5 秒读一次。</dd>
+    <dt>自定义点位</dt>
+    <dd>JSON 数组，结果输出到 <code>data.custom</code>，例如 <code>[{"name":"doorOpen","src":"plc","addr":"100.3","type":0}]</code>。<code>src</code> 可为 macro、macroAlt、plc。</dd>
+    <dt>仅变化时输出</dt>
+    <dd>只输出有变化的分组；数值变化不超过“变化阈值”时视为未变。</dd>
+  </dl>
+
+  <h3>说明</h3>
+  <p>状态显示黄色表示部分点位读取失败，查看输出消息的 <code>errors</code>。</p>
+</script>

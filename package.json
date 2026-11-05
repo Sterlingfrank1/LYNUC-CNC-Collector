@@ -10,7 +10,6 @@
     "lynuc",
     "iiot"
   ],
-  "main": "lib/client.js",
   "files": [
     "lib",
     "nodes",
@@ -19,11 +18,21 @@
     "docs/POINTS.md",
     "docs/SITE_ACCEPTANCE.md"
   ],
+  "node-red": {
+    "version": ">=2.0.0",
+    "nodes": {
+      "lynuc-cnc": "nodes/lynuc-cnc.js"
+    }
+  },
   "engines": {
     "node": ">=14"
   },
   "scripts": {
     "test": "node --test test/*.test.js",
     "simulate": "node tools/simulator.js"
+  },
+  "devDependencies": {
+    "node-red": "^5.0.9",
+    "node-red-node-test-helper": "^0.3.6"
   }
 }
