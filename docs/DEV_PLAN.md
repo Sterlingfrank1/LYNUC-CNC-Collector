@@ -63,3 +63,4 @@
 | 2026-11-05 | 基线入库 | GitHub 新克隆与 `project-test` 一致，tag `baseline-project-test` |
 | 2026-11-05 | 协议分析 | 确认 ASCII 协议、端口 4011、Linux 坐标 API 为空实现，见 PROTOCOL.md |
 | 2026-11-05 | 资料补全 | `project-test` 缺的接口说明、宏程序手册、Windows 库取自 `D:\Industry\Cursor_Workspace\CNC` |
+| 2026-11-05 | 真实环境联调（PR4） | `npm pack` 24.6 KB，装入干净 userDir 仅新增 1 个包。Node-RED 5.0.9 + 示例 Flow + 真实 MQTT Broker：收到 31 条数据、9 条事件，覆盖报警、中文程序名、断线重连；编辑器配置保存后生效；重新部署后连接数不变；服务端和浏览器无报错 |
