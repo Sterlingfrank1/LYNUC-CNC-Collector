@@ -19,7 +19,6 @@ const FRAME_SIZES = {
   '0066': 1024,
   '0069': 1024,
   '0081': 1024,
-  '0084': 1024,
   '0093': 1024,
 };
 // 0030 的请求 256 字节，响应却按 1024 接收。
@@ -41,7 +40,7 @@ function defaultMacros() {
     macros.set(base + 19, 10.5 + axis);
     macros.set(base + 21, 500.5 + axis);
     macros.set(base + 22, 1.25 + axis);
-    macros.set(base + 24, 200 + axis);
+    macros.set(base + 30, 200 + axis);
     macros.set(base + 32, 30 + axis);
   });
   // 3 号刀的磨损数据
@@ -79,7 +78,6 @@ class Simulator {
     this.filePath = 'NC1/O1234.NC';
     this.totalLines = 2000;
     this.mainLine = 1250;
-    this.feedActual = 495;
     this.version = '2.6.2.0';
     this.serial = 'SIM-0001';
     this.mac = '00:11:22:33:44:55';
@@ -194,8 +192,6 @@ class Simulator {
         const address = args.slice(0, args.lastIndexOf('-'));
         return this._number('0061', this.plc.has(address) ? this.plc.get(address) : 0, request);
       }
-      case '0084':
-        return this._number('0085', 0, request);
       case '0081':
         return this._string('0082', this.fileName);
       case '0030':
@@ -204,8 +200,6 @@ class Simulator {
         return this._string('0094', String(this.totalLines));
       case '0123':
         return this._string('0124', String(this.mainLine));
-      case '0108':
-        return this._string('0109', String(this.feedActual));
       case '0045':
         return this._string('0046', this.version);
       case '0066':
