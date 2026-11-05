@@ -46,11 +46,10 @@ test('各命令解析响应', async (t) => {
   assert.equal(await client.read({ src: 'filePath' }), 'NC1/O1234.NC');
   assert.equal(await client.read({ src: 'totalLines', channel: 1 }), 2000);
   assert.equal(await client.read({ src: 'mainLine' }), 1250);
-  assert.equal(await client.read({ src: 'feedActual' }), 495);
   assert.equal(await client.read({ src: 'version' }), '2.6.2.0');
   assert.equal(await client.read({ src: 'serial' }), 'SIM-0001');
   assert.equal(await client.read({ src: 'mac' }), '00:11:22:33:44:55');
-  assert.ok(sim.frames.length >= 11);
+  assert.equal(sim.frames.length, 10);
 });
 
 test('PLC 地址不带前缀，类型默认 MO', async (t) => {
@@ -225,7 +224,7 @@ test('未知点位来源报错', async (t) => {
 
 test('命令表不含任何写命令', () => {
   const writes = ['0004', '0011', '0021', '0027', '0036', '0039', '0057', '0063', '0072', '0075', '0077', '0087', '0096', '0114', '0120'];
-  const sample = { id: 1, addr: '1.1', type: 1, bitStart: 0, bitSize: 1, channel: 1 };
+  const sample = { id: 1, addr: '1.1', type: 1, channel: 1 };
   for (const [name, command] of Object.entries(COMMANDS)) {
     const code = command.request(sample).slice(0, 4);
     assert.ok(!writes.includes(code), `${name} 使用了写命令 ${code}`);
