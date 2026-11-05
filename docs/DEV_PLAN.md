@@ -71,6 +71,7 @@
 | 2026-11-05 | CI 待启用 | 当前 `gh` 令牌缺 `workflow` 权限，无法推送 `.github/workflows/`。工作流暂存 `docs/ci-workflow.yml`，启用方法见 README；同等内容由 `test/linux-matrix.sh` 在 Docker 里执行 |
 | 2026-11-05 | Linux 矩阵 | Docker 全部通过：Node 22/24 单测 69 项；Node-RED 3、4 节点测试各 9 项；Node 14/16 全量 67 点；厂商 32 位 `.so` 一致性 91 项；目标镜像 `nodered/node-red:4.0.8-22`（Alpine 3.21 + musl）安装打包产物后真实采集 |
 | 2026-11-05 | 新发现 | Linux 库发送未清零的栈缓冲区，NUL 之后是垃圾字节，说明服务端只解析到第一个 NUL。比较逻辑改为帧长 + C 字符串，变异测试确认仍能检出错误 |
+| 2026-11-05 | 发布 v0.1.0（预发布） | 从 GitHub 下载 Release 资产装入目标镜像复验：离线安装仅 1 个包，零运行时依赖，全量 67 点无失败；`main` 与验证过的提交内容相同 |
 
 ## 6. 验收状态
 
