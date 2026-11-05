@@ -27,7 +27,7 @@ npm pack
 cd ~/.node-red && npm install /path/to/node-red-contrib-lynuc-cnc-0.1.0.tgz
 ```
 
-要求 Node-RED ≥ 2.0、Node.js ≥ 14。Linux x64、ARM、容器环境都可以使用。
+要求 Node.js ≥ 14。Node-RED 已在 3、4、5 上测试，2.x 未测试。纯 JavaScript，不区分 x64、ARM 或容器环境。
 
 ## 现场第一步
 
@@ -91,8 +91,18 @@ npm run simulate
 
 ```bash
 npm install
-npm test
+npm test                  # 单元与节点测试
+npm run test:conformance  # 与厂商库比对（Windows，需 Python 和 21、4011 端口）
+bash test/linux-matrix.sh # 在 Docker 里跑完整 Linux 矩阵
 ```
+
+启用 GitHub Actions：工作流暂存在 `docs/ci-workflow.yml`，因为推送 `.github/workflows/` 需要 `workflow` 权限。
+
+```bash
+gh auth refresh -h github.com -s workflow
+```
+
+授权后把文件移到 `.github/workflows/ci.yml` 并提交。
 
 | 路径 | 内容 |
 | --- | --- |

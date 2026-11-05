@@ -231,7 +231,22 @@ test('命令表不含任何写命令', () => {
   }
 });
 
-test('parseAlarms 容忍空串和无法识别的内容', () => {
+test('无法识别的报警保留原文，不能当成无报警', () => {
   assert.deepEqual(parseAlarms(''), []);
-  assert.deepEqual(parseAlarms('没有错误'), []);
+  assert.deepEqual(parseAlarms('  '), []);
+  assert.deepEqual(parseAlarms('E1204 spindle overload'), [
+    { code: null, message: 'E1204 spindle overload', level: null },
+  ]);
+});
+
+test('报警串尾部的空白不影响解析', () => {
+  assert.deepEqual(parseAlarms('【1204】主轴过载_L2\r\n'), [{ code: 1204, message: '主轴过载', level: 2 }]);
+});
+
+test('只有宏变量和 PLC 校验回显，与厂商库一致', async (t) => {
+  const { sim, client } = await setup(t);
+  sim.totalLines = '2000(00000)';
+  sim.mainLine = '1250(00000)';
+  assert.equal(await client.read({ src: 'totalLines', channel: 1 }), 2000);
+  assert.equal(await client.read({ src: 'mainLine' }), 1250);
 });

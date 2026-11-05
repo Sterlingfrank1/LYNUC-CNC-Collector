@@ -39,10 +39,6 @@ function toOptions(config) {
   };
 }
 
-function withoutUndefined(options) {
-  return Object.fromEntries(Object.entries(options).filter(([, value]) => value !== undefined));
-}
-
 module.exports = function register(RED) {
   function LynucCncNode(config) {
     RED.nodes.createNode(this, config);
@@ -50,7 +46,7 @@ module.exports = function register(RED) {
 
     let collector;
     try {
-      collector = new Collector(withoutUndefined(toOptions(config)));
+      collector = new Collector(toOptions(config));
     } catch (error) {
       node.status({ fill: 'red', shape: 'dot', text: `配置错误: ${error.message}` });
       node.error(`配置错误: ${error.message}`);

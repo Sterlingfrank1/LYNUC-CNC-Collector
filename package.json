@@ -29,6 +29,7 @@
   },
   "scripts": {
     "test": "node --test test/*.test.js",
+    "test:conformance": "node test/conformance/run.js",
     "simulate": "node tools/simulator.js"
   },
   "devDependencies": {

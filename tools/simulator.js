@@ -229,7 +229,10 @@ class Simulator {
   }
 }
 
-/** 厂商库 remote_new_connect 同时要求的匿名 FTP 握手，仅一致性测试用。 */
+/**
+ * 厂商库 remote_new_connect 要求的 FTP 控制连接，仅一致性测试用。
+ * Windows 版的心跳还会在这条连接上发 NOOP 并持锁等回复，所以其他命令也要应答。
+ */
 function startFtpStub(port = 21, host = '127.0.0.1') {
   const sockets = new Set();
   const server = net.createServer((socket) => {
@@ -243,6 +246,8 @@ function startFtpStub(port = 21, host = '127.0.0.1') {
         socket.write('331 password required\r\n');
       } else if (line.startsWith('PASS')) {
         socket.write('230 logged in\r\n');
+      } else {
+        socket.write('200 ok\r\n');
       }
     });
   });

@@ -71,7 +71,7 @@
 
 ### alarms（默认每周期）
 
-`0051`，数组元素 `{ code, message, level, severity, since }`。`severity`：`FATAL`/`ERROR`/`WARNING`/`INFO`。`since` 是采集器首次看到该报警的时间，不是控制器记录的时间。
+`0051`，数组元素 `{ code, message, level, severity, since }`。报警文本格式无法识别时 `code` 和 `level` 为 `null`，`message` 保留原文，避免把真实报警当成无报警。`severity`：`FATAL`/`ERROR`/`WARNING`/`INFO`。`since` 是采集器首次看到该报警的时间，不是控制器记录的时间。
 
 ### production（默认每 5 周期）
 
@@ -145,4 +145,4 @@ I/O 输入点可直接读宏变量：X0~X9 位于 `#50500~#50819`，成块读取
 
 ## 业务事件
 
-节点第 2 个输出：`connected`、`disconnected`、`stateChanged`、`cycleStarted`、`cycleEnded`、`programChanged`、`toolChanged`、`partCompleted`、`alarmRaised`、`alarmCleared`。
+节点第 2 个输出：`connected`、`disconnected`、`stateChanged`、`cycleStarted`、`cycleEnded`、`programChanged`、`toolChanged`、`partCompleted`、`alarmRaised`、`alarmCleared`、`collectError`（采集内部异常，正常不应出现）。

@@ -139,6 +139,7 @@ async function main() {
     console.log(`报告已写入 ${options.report}`);
   }
   client.close();
+  process.exitCode = failed.length > 0 ? 3 : 0;
 }
 
 main().catch((error) => {

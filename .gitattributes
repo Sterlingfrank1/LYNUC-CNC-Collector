@@ -1,0 +1,13 @@
+# 自写文本统一 LF：带 CR 的 shebang 在 Linux 上无法执行。厂商资料和 legacy 保持原样。
+/lib/** text eol=lf
+/nodes/** text eol=lf
+/tools/** text eol=lf
+/test/** text eol=lf
+/docs/** text eol=lf
+/examples/** text eol=lf
+/.github/** text eol=lf
+/package.json text eol=lf
+/package-lock.json text eol=lf
+/README.md text eol=lf
+/.gitignore text eol=lf
+/.gitattributes text eol=lf
